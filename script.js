@@ -1,114 +1,156 @@
-// ---------- Game Variables ----------
-let machines = [
-    { name: "Egg Machine", level: 1, baseProduction: 5, upgradeCost: 100 },
-    { name: "Grain Mill", level: 0, baseProduction: 20, upgradeCost: 500 },
-    { name: "Chicken Factory", level: 0, baseProduction: 50, upgradeCost: 2000 }
+// ---------- Phaser Game Config ----------
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    parent: 'game-container',
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+// ---------- Variables ----------
+let player, cursors, machines = [], eggs = 0;
+const overlayContainer = document.getElementById('overlay-container');
+const eggCounter = document.getElementById('egg-counter');
+
+// ---------- Machine Data ----------
+const machineData = [
+    { name: "Egg Machine", x: 200, y: 200, level: 1, baseProduction: 5, upgradeCost: 100 },
+    { name: "Grain Mill", x: 500, y: 400, level: 0, baseProduction: 20, upgradeCost: 500 },
 ];
 
-let eggs = 0;
-let lastUpdate = Date.now();
+// ---------- Preload ----------
+function preload() {
+    this.load.image('player', 'https://via.placeholder.com/50?text=👨‍🌾');
+    this.load.image('machine', 'https://via.placeholder.com/80?text=🏭');
+    this.load.image('grass', 'https://via.placeholder.com/1600x1200/7ec850/ffffff?text=Grass');
+}
 
-// ---------- DOM Elements ----------
-const eggCount = document.getElementById("egg-count");
-const machineContainer = document.getElementById("machine-container");
+// ---------- Create ----------
+function create() {
+    // Background
+    this.add.tileSprite(400, 300, 1600, 1200, 'grass');
 
-// ---------- Functions ----------
-function updateUI() {
-    eggCount.textContent = `Eggs: ${Math.floor(eggs)}`;
+    // Player
+    player = this.physics.add.sprite(100, 100, 'player');
+    player.setCollideWorldBounds(true);
 
-    machineContainer.innerHTML = "";
-    machines.forEach((machine, index) => {
-        machineContainer.innerHTML += `
-        <div class="machine-card" id="machine-${index}">
-            <img src="https://via.placeholder.com/80?text=${machine.name.split(' ')[0]}" alt="${machine.name}" class="machine-img">
-            <div class="machine-info">
-                <p class="machine-name">${machine.name}</p>
-                <p class="machine-level">Level: ${machine.level}</p>
-                <p class="machine-production">Production: ${machine.baseProduction * machine.level} eggs/hour</p>
-                <button onclick="upgradeMachine(${index})" class="upgrade-btn">⬆️ Upgrade (${machine.upgradeCost} eggs)</button>
-            </div>
-        </div>
-        `;
+    cursors = this.input.keyboard.createCursorKeys();
+
+    // Create machines
+    machineData.forEach(data => {
+        const machine = this.add.sprite(data.x, data.y, 'machine').setInteractive();
+        machine.data = data;
+        machine.lastProduced = Date.now();
+        machine.on('pointerdown', () => collectEggs(machine));
+        machines.push(machine);
+
+        // Upgrade button (DOM)
+        const btn = document.createElement('button');
+        btn.className = 'upgrade-btn';
+        btn.innerText = `Upgrade (${data.upgradeCost})`;
+        btn.onclick = () => upgradeMachine(machine);
+        overlayContainer.appendChild(btn);
+        machine.btn = btn;
     });
 
-    updateUpgradeButtons();
+    // Load save
+    loadGame();
 }
 
-function upgradeMachine(index) {
-    let machine = machines[index];
-    if (eggs >= machine.upgradeCost) {
-        eggs -= machine.upgradeCost;
-        machine.level++;
-        machine.upgradeCost = Math.floor(machine.upgradeCost * 1.5);
-        showFloatingEggs(machine.baseProduction * machine.level); // Visual effect
-        updateUI();
-        saveGame();
-    } else {
-        alert(`❌ Not enough eggs for ${machine.name}`);
-    }
-}
+// ---------- Update ----------
+function update() {
+    const speed = 200;
+    player.body.setVelocity(0);
+    if (cursors.left.isDown) player.body.setVelocityX(-speed);
+    if (cursors.right.isDown) player.body.setVelocityX(speed);
+    if (cursors.up.isDown) player.body.setVelocityY(-speed);
+    if (cursors.down.isDown) player.body.setVelocityY(speed);
 
-function idleProduction() {
-    const now = Date.now();
-    const elapsed = (now - lastUpdate) / 3600000; // hours
+    // Idle production
     machines.forEach(machine => {
-        eggs += elapsed * machine.baseProduction * machine.level;
-        showFloatingEggs(elapsed * machine.baseProduction * machine.level); // Visual effect
+        const now = Date.now();
+        const elapsed = (now - machine.lastProduced) / 1000;
+        if (elapsed >= 1) {
+            const produced = machine.data.baseProduction * machine.data.level * elapsed;
+            eggs += produced;
+            showFloatingEggs(machine.x, machine.y - 50, produced);
+            machine.lastProduced = now;
+        }
+
+        // Position upgrade button
+        const rect = game.canvas.getBoundingClientRect();
+        const scaleX = rect.width / game.config.width;
+        const scaleY = rect.height / game.config.height;
+        machine.btn.style.left = (machine.x * scaleX + rect.left - 40) + 'px';
+        machine.btn.style.top = (machine.y * scaleY + rect.top + 40) + 'px';
+        machine.btn.innerText = `Upgrade (${machine.data.upgradeCost})`;
     });
-    lastUpdate = now;
-    updateUI();
+
+    eggCounter.innerText = `Eggs: ${Math.floor(eggs)}`;
+
     saveGame();
 }
 
-function updateUpgradeButtons() {
-    machines.forEach((machine, index) => {
-        const btn = document.querySelector(`#machine-${index} .upgrade-btn`);
-        if (eggs >= machine.upgradeCost) {
-            btn.classList.add("affordable");
-        } else {
-            btn.classList.remove("affordable");
-        }
-    });
+// ---------- Collect Eggs ----------
+function collectEggs(machine) {
+    const produced = machine.data.baseProduction * machine.data.level;
+    eggs += produced;
+    showFloatingEggs(machine.x, machine.y - 50, produced);
 }
 
-// ---------- Floating Egg Animation ----------
-function showFloatingEggs(amount) {
-    if (amount < 1) return;
-    const container = document.body;
-
-    const egg = document.createElement("div");
-    egg.classList.add("floating-egg");
-    egg.textContent = `🥚 +${Math.floor(amount)}`;
-    egg.style.left = `${Math.random() * 80 + 10}%`;
-
-    container.appendChild(egg);
-
-    setTimeout(() => {
-        egg.remove();
-    }, 1500);
-}
-
-// ---------- Persistence ----------
-function saveGame() {
-    localStorage.setItem("eggs", eggs);
-    localStorage.setItem("machines", JSON.stringify(machines));
-    localStorage.setItem("lastUpdate", lastUpdate);
-}
-
-function loadGame() {
-    if (localStorage.getItem("eggs")) {
-        eggs = parseFloat(localStorage.getItem("eggs"));
-        machines = JSON.parse(localStorage.getItem("machines"));
-        lastUpdate = parseInt(localStorage.getItem("lastUpdate"));
+// ---------- Upgrade Machine ----------
+function upgradeMachine(machine) {
+    if (eggs >= machine.data.upgradeCost) {
+        eggs -= machine.data.upgradeCost;
+        machine.data.level++;
+        machine.data.upgradeCost = Math.floor(machine.data.upgradeCost * 1.5);
+    } else {
+        alert("Not enough eggs!");
     }
 }
 
-// ---------- Initialization ----------
-window.addEventListener("load", () => {
-    loadGame();
-    updateUI();
-    idleProduction();
-});
+// ---------- Floating Eggs (DOM) ----------
+function showFloatingEggs(x, y, amount) {
+    const floatDiv = document.createElement('div');
+    floatDiv.className = 'floating-egg';
+    floatDiv.innerText = `🥚 +${Math.floor(amount)}`;
+    overlayContainer.appendChild(floatDiv);
 
-// ---------- Auto Idle ----------
-setInterval(idleProduction, 1000);
+    const rect = game.canvas.getBoundingClientRect();
+    floatDiv.style.left = rect.left + x - 10 + 'px';
+    floatDiv.style.top = rect.top + y - 10 + 'px';
+
+    // Remove after animation
+    setTimeout(() => overlayContainer.removeChild(floatDiv), 1000);
+}
+
+// ---------- Save & Load ----------
+function saveGame() {
+    localStorage.setItem('eggs', eggs);
+    localStorage.setItem('machines', JSON.stringify(machineData));
+    localStorage.setItem('playerX', player.x);
+    localStorage.setItem('playerY', player.y);
+}
+
+function loadGame() {
+    const savedEggs = localStorage.getItem('eggs');
+    const savedMachines = localStorage.getItem('machines');
+    const savedX = localStorage.getItem('playerX');
+    const savedY = localStorage.getItem('playerY');
+
+    if (savedEggs) eggs = parseFloat(savedEggs);
+    if (savedMachines) {
+        const saved = JSON.parse(savedMachines);
+        for (let i = 0; i < machineData.length; i++) {
+            machineData[i].level = saved[i].level;
+            machineData[i].upgradeCost = saved[i].upgradeCost;
+        }
+    }
+    if (savedX && savedY) {
+        player.x = parseFloat(savedX);
+        player.y = parseFloat(savedY);
+    }
+}
