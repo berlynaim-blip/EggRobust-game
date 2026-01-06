@@ -1,84 +1,114 @@
-// -----------------------------
-// Game Variables
-// -----------------------------
+// ---------- Game Variables ----------
+let machines = [
+    { name: "Egg Machine", level: 1, baseProduction: 5, upgradeCost: 100 },
+    { name: "Grain Mill", level: 0, baseProduction: 20, upgradeCost: 500 },
+    { name: "Chicken Factory", level: 0, baseProduction: 50, upgradeCost: 2000 }
+];
+
 let eggs = 0;
-let machineLevel = 1;
-let baseProduction = 5; // eggs per hour
 let lastUpdate = Date.now();
-let upgradeCost = 100;
 
-// -----------------------------
-// DOM Elements
-// -----------------------------
+// ---------- DOM Elements ----------
 const eggCount = document.getElementById("egg-count");
-const machineLevelText = document.getElementById("machine-level");
-const productionRateText = document.getElementById("production-rate");
-const collectBtn = document.getElementById("collect-btn");
-const upgradeBtn = document.getElementById("upgrade-btn");
+const machineContainer = document.getElementById("machine-container");
 
-// -----------------------------
-// Functions
-// -----------------------------
+// ---------- Functions ----------
 function updateUI() {
     eggCount.textContent = `Eggs: ${Math.floor(eggs)}`;
-    machineLevelText.textContent = `Machine Level: ${machineLevel}`;
-    productionRateText.textContent = `Production: ${baseProduction * machineLevel} eggs/hour`;
+
+    machineContainer.innerHTML = "";
+    machines.forEach((machine, index) => {
+        machineContainer.innerHTML += `
+        <div class="machine-card" id="machine-${index}">
+            <img src="https://via.placeholder.com/80?text=${machine.name.split(' ')[0]}" alt="${machine.name}" class="machine-img">
+            <div class="machine-info">
+                <p class="machine-name">${machine.name}</p>
+                <p class="machine-level">Level: ${machine.level}</p>
+                <p class="machine-production">Production: ${machine.baseProduction * machine.level} eggs/hour</p>
+                <button onclick="upgradeMachine(${index})" class="upgrade-btn">⬆️ Upgrade (${machine.upgradeCost} eggs)</button>
+            </div>
+        </div>
+        `;
+    });
+
+    updateUpgradeButtons();
 }
 
-function collectEggs() {
-    eggs += baseProduction * machineLevel / 60; // collect manually (1 min worth)
-    updateUI();
-}
-
-function upgradeMachine() {
-    if (eggs >= upgradeCost) {
-        eggs -= upgradeCost;
-        machineLevel++;
-        upgradeCost = Math.floor(upgradeCost * 1.5);
+function upgradeMachine(index) {
+    let machine = machines[index];
+    if (eggs >= machine.upgradeCost) {
+        eggs -= machine.upgradeCost;
+        machine.level++;
+        machine.upgradeCost = Math.floor(machine.upgradeCost * 1.5);
+        showFloatingEggs(machine.baseProduction * machine.level); // Visual effect
         updateUI();
+        saveGame();
     } else {
-        alert(`❌ Not enough eggs! Need ${upgradeCost} eggs.`);
+        alert(`❌ Not enough eggs for ${machine.name}`);
     }
 }
 
 function idleProduction() {
     const now = Date.now();
-    const elapsed = (now - lastUpdate) / 3600000; // hours passed
-    eggs += elapsed * baseProduction * machineLevel;
+    const elapsed = (now - lastUpdate) / 3600000; // hours
+    machines.forEach(machine => {
+        eggs += elapsed * machine.baseProduction * machine.level;
+        showFloatingEggs(elapsed * machine.baseProduction * machine.level); // Visual effect
+    });
     lastUpdate = now;
     updateUI();
+    saveGame();
 }
 
-// -----------------------------
-// Event Listeners
-// -----------------------------
-collectBtn.addEventListener("click", collectEggs);
-upgradeBtn.addEventListener("click", upgradeMachine);
+function updateUpgradeButtons() {
+    machines.forEach((machine, index) => {
+        const btn = document.querySelector(`#machine-${index} .upgrade-btn`);
+        if (eggs >= machine.upgradeCost) {
+            btn.classList.add("affordable");
+        } else {
+            btn.classList.remove("affordable");
+        }
+    });
+}
 
-// -----------------------------
-// Auto Update
-// -----------------------------
-setInterval(idleProduction, 1000); // update every second
+// ---------- Floating Egg Animation ----------
+function showFloatingEggs(amount) {
+    if (amount < 1) return;
+    const container = document.body;
 
-// -----------------------------
-// Save/Load Progress
-// -----------------------------
+    const egg = document.createElement("div");
+    egg.classList.add("floating-egg");
+    egg.textContent = `🥚 +${Math.floor(amount)}`;
+    egg.style.left = `${Math.random() * 80 + 10}%`;
+
+    container.appendChild(egg);
+
+    setTimeout(() => {
+        egg.remove();
+    }, 1500);
+}
+
+// ---------- Persistence ----------
 function saveGame() {
     localStorage.setItem("eggs", eggs);
-    localStorage.setItem("machineLevel", machineLevel);
+    localStorage.setItem("machines", JSON.stringify(machines));
     localStorage.setItem("lastUpdate", lastUpdate);
 }
 
 function loadGame() {
     if (localStorage.getItem("eggs")) {
         eggs = parseFloat(localStorage.getItem("eggs"));
-        machineLevel = parseInt(localStorage.getItem("machineLevel"));
+        machines = JSON.parse(localStorage.getItem("machines"));
         lastUpdate = parseInt(localStorage.getItem("lastUpdate"));
     }
 }
 
-window.addEventListener("beforeunload", saveGame);
+// ---------- Initialization ----------
 window.addEventListener("load", () => {
     loadGame();
     updateUI();
+    idleProduction();
 });
+
+// ---------- Auto Idle ----------
+setInterval(idleProduction, 1000);
