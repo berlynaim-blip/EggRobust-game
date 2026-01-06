@@ -1,79 +1,60 @@
-/* ---------- Body & Container ---------- */
+/* ---------- Body & Game Container ---------- */
 body {
-    background: linear-gradient(to top, #fefbd8, #fff8dc);
-    font-family: 'Comic Sans MS', sans-serif;
-    text-align: center;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+    font-family: 'Comic Sans MS', sans-serif;
+    background: #a3d9a5; 
 }
 
-.container {
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 20px;
-}
-
-/* ---------- Header & Stats ---------- */
-h1 {
-    color: #ff9800;
-}
-
-.stats p {
-    font-size: 1.5em;
-    margin: 10px 0;
-}
-
-/* ---------- Machines ---------- */
-.machine-card {
-    background-color: #fffbe6;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    margin: 15px;
-    padding: 10px;
-    display: inline-block;
-    width: 180px;
-    vertical-align: top;
-    transition: transform 0.3s;
-}
-
-.machine-card:hover {
-    transform: translateY(-5px);
-}
-
-.machine-img {
-    width: 80px;
-    height: 80px;
-}
-
-.machine-info p {
-    margin: 5px 0;
+#game-container {
+    display: block;
+    margin: 0 auto;
 }
 
 /* ---------- Upgrade Buttons ---------- */
 .upgrade-btn {
-    padding: 8px 15px;
-    font-size: 14px;
-    border-radius: 10px;
+    position: absolute;
+    padding: 6px 12px;
     border: none;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #ffd700, #ffa500);
+    color: #000;
+    font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    font-size: 14px;
 }
 
-.upgrade-btn.affordable {
-    box-shadow: 0 0 15px gold;
-    transform: scale(1.05);
+.upgrade-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.3);
 }
 
 /* ---------- Floating Eggs ---------- */
 .floating-egg {
-    position: fixed;
-    bottom: 100px;
-    font-size: 20px;
-    animation: floatUp 1.5s ease-out forwards;
+    position: absolute;
     pointer-events: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 1px 1px 2px #fff;
+    animation: floatUp 1s ease-out forwards;
 }
 
 @keyframes floatUp {
     0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-100px); opacity: 0; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+
+/* ---------- Eggs Counter ---------- */
+.egg-counter {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 1px 1px 2px #fff;
 }
