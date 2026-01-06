@@ -1,19 +1,27 @@
 <!DOCTYPE html>
-  <html>
-  <head>
-   <title>EggRobust</title>
-  <style>
-  /*add some basic styling*/
-  body {
-  font-family: Arial, sans-serif;
-}
-#game-canvas {
-  border: 1px solid black;
-}
-</style>
-  </head>
-  <body>
-  <canvas id="game-canvas" width="800" height="600"></canvas>
-  <script src="game.js"></script>
-  </body>
-  </html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egg Robust</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🥚 Egg Robust</h1>
+
+        <div class="stats">
+            <p id="egg-count">Eggs: 0</p>
+            <p id="machine-level">Machine Level: 1</p>
+            <p id="production-rate">Production: 5 eggs/hour</p>
+        </div>
+
+        <div class="buttons">
+            <button id="collect-btn">🥚 Collect Eggs</button>
+            <button id="upgrade-btn">⬆️ Upgrade Machine</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
