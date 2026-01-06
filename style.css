@@ -1,0 +1,43 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #fff8dc;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+
+h1 {
+    color: #ff9800;
+}
+
+.stats p {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+.buttons button {
+    padding: 10px 20px;
+    font-size: 1em;
+    margin: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#collect-btn {
+    background-color: #ffeb3b;
+}
+
+#upgrade-btn {
+    background-color: #4caf50;
+    color: white;
+}
