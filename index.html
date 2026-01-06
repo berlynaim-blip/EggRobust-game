@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EggRobust</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EggRobust</title>
+
+<!-- Phaser CDN -->
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🥚 EggRobust</h1>
+<div id="game-container"></div>
 
-        <div class="stats">
-            <p id="egg-count">Eggs: 0</p>
-        </div>
+<!-- Eggs Counter -->
+<div id="egg-counter" class="egg-counter">Eggs: 0</div>
 
-        <div id="machine-container"></div>
-    </div>
+<!-- Upgrade buttons container -->
+<div id="overlay-container"></div>
 
-    <!-- Optional: Collect Sound -->
-    <!-- <audio id="collect-sound" src="collect.wav"></audio> -->
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
